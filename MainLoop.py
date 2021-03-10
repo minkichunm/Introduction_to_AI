@@ -108,7 +108,7 @@ while running:
     clock.tick(60)
     window.fill((255, 255, 255))
     if b.currentPlayer ==2:
-        ai.makeTheMove(b)
+        ai.makeGreedyMove(b)
 
     for e in pg.event.get():
 
