@@ -6,6 +6,7 @@
 
 import pygame as pg
 from Board import Board
+from AI import AI
 
 pg.init()
 clock = pg.time.Clock()
@@ -17,6 +18,7 @@ rectWidth = 50
 
 players = 2
 b = Board(players)
+ai = AI(b)
 
 COLOR0=(0,0,255)
 COLOR1=(0,255,255)
@@ -26,39 +28,75 @@ COLOR11=(255,0,0)
 COLOR12 = (255,255,0)
 
 def validMoveWalk(b , x, y):
-    if b.getEntry(x+1,y+1) == 0:
-        b.setEntry(x+1,y+1, 12)
-    if b.getEntry(x-1,y-1) == 0:
-        b.setEntry(x-1,y-1, 12)
-    if b.getEntry(x+1,y-1) == 0:
-        b.setEntry(x+1,y-1, 12)
+    try:
+        if b.getEntry(x+1,y+1) == 0:
+            b.setEntry(x+1,y+1, 12)
+    except:
+        pass
 
-    if b.getEntry(x-1,y+1) == 0:
-        b.setEntry(x-1,y+1, 12)
+    try:
+        if b.getEntry(x-1,y-1) == 0:
+            b.setEntry(x-1,y-1, 12)
+
+    except:
+        pass
+    try:
+        if b.getEntry(x+1,y-1) == 0:
+            b.setEntry(x+1,y-1, 12)
+
+    except:
+        pass
+    try:
+
+        if b.getEntry(x-1,y+1) == 0:
+            b.setEntry(x-1,y+1, 12)
+
+    except:
+        pass
 
 
 def validMoveJump(b, x, y):
-    #add all players 3-6
-    if b.getEntry(x+1, y+1) in range(1, 7):
-        if (b.getEntry(x+2, y+2) == 0):
-            b.setEntry(x+2, y+2, 12)
-            validMoveJump(b, x+2, y+2)
-        
-    if b.getEntry(x-1, y-1) in range(1, 7):
-        if (b.getEntry(x-2, y-2) == 0):
-            b.setEntry(x-2, y-2, 12)
-            validMoveJump(b, x-2, y-2)
+    # some of these calls crush, we might need a try except
+    try:
 
-    if b.getEntry(x+1, y-1) in range(1, 7):
-        if (b.getEntry(x+2, y-2) == 0):
-            b.setEntry(x+2, y-2, 12)
-            validMoveJump(b, x+2, y-2)
+        if b.getEntry(x+1, y+1) in range(1, 7):
+            if (b.getEntry(x+2, y+2) == 0):
+                b.setEntry(x+2, y+2, 12)
+                validMoveJump(b, x+2, y+2)
+    except:
+        pass
 
-    if b.getEntry(x-1, y+1) in range(1, 7):
-        if (b.getEntry(x-2, y+2) == 0):
-            b.setEntry(x-2, y+2, 12)
-            validMoveJump(b, x-2, y+2)
-            
+    try:
+        if b.getEntry(x-1, y-1) in range(1, 7):
+            if (b.getEntry(x-2, y-2) == 0):
+                b.setEntry(x-2, y-2, 12)
+                validMoveJump(b, x-2, y-2)
+    except:
+        pass
+
+    try:
+
+        if b.getEntry(x+1, y-1) in range(1, 7):
+            if (b.getEntry(x+2, y-2) == 0):
+                b.setEntry(x+2, y-2, 12)
+                validMoveJump(b, x+2, y-2)
+
+    except:
+        pass
+
+    try:
+
+        if b.getEntry(x-1, y+1) in range(1, 7):
+            if (b.getEntry(x-2, y+2) == 0):
+                b.setEntry(x-2, y+2, 12)
+                validMoveJump(b, x-2, y+2)
+
+    except:
+
+        pass
+
+
+
 def movePiece(b, x , y):
     b.setEntry(x, y, b.currentPlayer)
     b.resetAfterMoves()
@@ -69,8 +107,11 @@ def movePiece(b, x , y):
 while running:
     clock.tick(60)
     window.fill((255, 255, 255))
+    if b.currentPlayer ==2:
+        ai.makeTheMove(b)
+
     for e in pg.event.get():
-        
+
         if e.type == pg.MOUSEBUTTONDOWN:
             (mouseX, mouseY) = pg.mouse.get_pos()
             (xCoord, yCoord) = (mouseY//rectWidth, mouseX//rectHeight)
@@ -80,16 +121,16 @@ while running:
                 b.setEntry(xCoord, yCoord, 11)
                 validMoveWalk(b, xCoord, yCoord)
                 validMoveJump(b, xCoord, yCoord)
-                
+
             elif b.getEntry(xCoord, yCoord) == 11:
                 b.resetPossibleMoves()
-                
+
             elif b.getEntry(xCoord, yCoord) == 12:
                 movePiece(b, xCoord, yCoord)
-                
+
         if e.type == pg.QUIT:
             running = False
-            
+
     #board printing
     for i in range(b.length1):
         for j in range(b.length2):
@@ -104,10 +145,10 @@ while running:
 
             elif  b.getEntry(i, j) == 11:
                 pg.draw.rect(window, COLOR11, (j*rectHeight, i*rectWidth, rectHeight, rectWidth))
-                
+
             elif  b.getEntry(i, j) == 12:
                 pg.draw.rect(window, COLOR12, (j*rectHeight, i*rectWidth, rectHeight, rectWidth))
-                
+
             else:
                 pg.draw.rect(window, COLOR9, (j*rectHeight, i*rectWidth, rectHeight, rectWidth))
 
