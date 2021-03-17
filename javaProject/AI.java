@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class AI {
-	
 	Random rand = new Random();
 	
 	public void makeRandomMove(Board board, ValidMovesCalculator vmc) {
@@ -33,7 +32,7 @@ public class AI {
 				board.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
 				board.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
 				int newHeuristic = heuristic1(positions);
-				int recHeuristic = RecGreedyMove(board, depth, vmc, bestHeuristic);
+				int recHeuristic = RecGreedyMove(board, depth, vmc, bestHeuristic, 0);
 				if (newHeuristic < bestHeuristic) {
 					bestHeuristic = newHeuristic;
 					m = new Move(positions.get(i)[0], positions.get(i)[1], destinations.get(j)[0], destinations.get(j)[1]);
@@ -53,10 +52,10 @@ public class AI {
 		vmc.increaseTurnOfPlayer();
 	}
 	
-	private int RecGreedyMove(Board fakeBoard, int depth, ValidMovesCalculator vmc, int bestHeuristic) {
+	private int RecGreedyMove(Board fakeBoard, int depth, ValidMovesCalculator vmc, int bestHeuristic, int inverseDepth) {
 		if (depth == 0) {
 			ArrayList <byte[]> positions = fakeBoard.listOfEntries(vmc.getTurnOfPlayer());
-			return heuristic1(positions);
+			return heuristic1(positions) + inverseDepth;
 		} else {
 			Board fakeFakeBoard = fakeBoard.copy();
 			ArrayList <byte[]> positions = fakeFakeBoard.listOfEntries(vmc.getTurnOfPlayer());
@@ -66,8 +65,8 @@ public class AI {
 				for (int j = 0; j < destinations.size(); j++) {
 					fakeFakeBoard.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
 					fakeFakeBoard.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
-					int newHeuristic = heuristic1(positions);
-					int recHeuristic = RecGreedyMove(fakeFakeBoard, depth - 1, vmc, bestHeuristic);
+					int newHeuristic = heuristic1(positions) + inverseDepth;
+					int recHeuristic = RecGreedyMove(fakeFakeBoard, depth - 1, vmc, bestHeuristic, inverseDepth + 1);
 					if (newHeuristic < bestHeuristic) {
 						bestHeuristic = newHeuristic;
 					}
@@ -89,7 +88,100 @@ public class AI {
 		}
 		return result;
 	}
-	
+
+	public void makeMinMaxMoveDepth(Board board, ValidMovesCalculator vmc, int depth) {
+		ArrayList <byte[]> positions = board.listOfEntries(vmc.getTurnOfPlayer());
+		ArrayList <byte[]> destinations = new ArrayList <byte[]>();
+		int bestHeuristic = heuristic1(positions);
+		Move m = null;
+		for (int i = 0; i < positions.size(); i++) {
+			destinations = validMovesAI(board, positions.get(i)[0], positions.get(i)[1]);
+			for (int j = 0; j < destinations.size(); j++) {
+				board.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
+				board.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
+				int newHeuristic = heuristic1(positions);
+				int recHeuristic = RecMinMaxMove(board, depth, vmc, bestHeuristic, 0);
+				if (newHeuristic < bestHeuristic) {
+					bestHeuristic = newHeuristic;
+					m = new Move(positions.get(i)[0], positions.get(i)[1], destinations.get(j)[0], destinations.get(j)[1]);
+				}
+				if (recHeuristic < bestHeuristic) {
+					bestHeuristic = recHeuristic;
+					m = new Move(positions.get(i)[0], positions.get(i)[1], destinations.get(j)[0], destinations.get(j)[1]);
+				}
+				board.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) vmc.getTurnOfPlayer());
+				board.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) 0);
+			}
+
+		}
+		//System.out.println(bestHeuristic);
+		board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
+		board.setEntry(m.getNewX(), m.getNewY(), (byte) vmc.getTurnOfPlayer());
+		vmc.increaseTurnOfPlayer();
+	}
+
+	private int RecMinMaxMove(Board fakeBoard, int depth, ValidMovesCalculator vmc, int bestHeuristic, int inverseDepth) {
+		if (depth == 0) {
+			ArrayList <byte[]> positions = fakeBoard.listOfEntries(vmc.getTurnOfPlayer());
+			return heuristic1(positions) + inverseDepth;
+		} else {
+			Board fakeFakeBoard = fakeBoard.copy();
+			this.makeOpponentMove(fakeFakeBoard, vmc,(byte) 2);
+			ArrayList <byte[]> positions = fakeFakeBoard.listOfEntries(vmc.getTurnOfPlayer());
+			ArrayList <byte[]> destinations = new ArrayList <byte[]>();
+			for (int i = 0; i < positions.size(); i++) {
+				destinations = validMovesAI(fakeFakeBoard, positions.get(i)[0], positions.get(i)[1]);
+				for (int j = 0; j < destinations.size(); j++) {
+					fakeFakeBoard.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
+					fakeFakeBoard.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
+					int newHeuristic = heuristic1(positions) + inverseDepth;
+					int recHeuristic = RecMinMaxMove(fakeFakeBoard, depth - 1, vmc, bestHeuristic, inverseDepth + 1);
+					if (newHeuristic < bestHeuristic) {
+						bestHeuristic = newHeuristic;
+					}
+					if (recHeuristic < bestHeuristic) {
+						bestHeuristic = recHeuristic;
+					}
+					fakeFakeBoard.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) vmc.getTurnOfPlayer());
+					fakeFakeBoard.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) 0);
+				}
+			}
+			return bestHeuristic;
+		}
+	}
+
+	public int heuristic2(ArrayList <byte[]> positions) {
+		int result = 0;
+		for (int i = 0; i < positions.size(); i++) {
+			result += Math.sqrt(Math.pow(- 100 + positions.get(i)[1] * 20 + positions.get(i)[0] * 40 - 416, 2) + Math.pow(60 + positions.get(i)[1] * 34 - 0, 2));
+		}
+		return result;
+	}
+
+	public void makeOpponentMove(Board board, ValidMovesCalculator vmc, byte opponent) {
+		ArrayList <byte[]> positions = board.listOfEntries(opponent);
+		ArrayList <byte[]> destinations = new ArrayList <byte[]>();
+		ArrayList <byte[]> newPositions = new ArrayList <byte[]>();
+		int bestHeuristic = heuristic2(positions);
+		Move m = null;
+		for (int i = 0; i < positions.size(); i++) {
+			destinations = validMovesAI(board, positions.get(i)[0], positions.get(i)[1]);
+			for (int j = 0; j < destinations.size(); j++) {
+				newPositions = (ArrayList<byte[]>) positions.clone();
+				newPositions.set(i, new byte[]{destinations.get(j)[0],destinations.get(j)[1]});
+				int newHeuristic = heuristic2(newPositions);
+//				System.out.println("new: " + newHeuristic + " , " + bestHeuristic);
+				if (newHeuristic < bestHeuristic) {
+					bestHeuristic = newHeuristic;
+					m = new Move(positions.get(i)[0], positions.get(i)[1], destinations.get(j)[0], destinations.get(j)[1]);
+				}
+			}
+		}
+		//System.out.println(bestHeuristic);
+		board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
+		board.setEntry(m.getNewX(), m.getNewY(), opponent);
+	}
+
 	public ArrayList <byte[]> validMovesAI(Board board, byte x, byte y) {
 		ArrayList <byte[]> destinations = new ArrayList <byte[]>();
 		validMovesWalkAI(board, x, y, destinations);

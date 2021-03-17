@@ -96,7 +96,7 @@ public class ChineseChecker extends JPanel implements MouseListener{
     
     
     private void initGame() {
-        frame.setTitle("Cinese Checker");
+        frame.setTitle("Chinese Checker");
         frame.setSize(800, 800);
         ActionListener actionListener = new ActionListener() {
         	public void actionPerformed(ActionEvent event) {
@@ -110,7 +110,7 @@ public class ChineseChecker extends JPanel implements MouseListener{
         			repaint();
         			break;
         		case "MakeRandomMove":
-        			System.out.print("Random Move");
+        			System.out.println("Random Move");
         			break;
         		}
         	}
@@ -138,7 +138,7 @@ public class ChineseChecker extends JPanel implements MouseListener{
     }  
     
     public void mousePressed(MouseEvent me) {
-    	//System.out.println(me.getX() + "," + me.getY());
+//    	System.out.println(me.getX() + "," + me.getY());
     	if (wc.getWinScore() == 0) {
 			byte xCoord = this.getX(me.getX(), me.getY());
 			byte yCoord = this.getY(me.getX(), me.getY());
@@ -146,8 +146,9 @@ public class ChineseChecker extends JPanel implements MouseListener{
 				vmc.click(board, xCoord, yCoord);
 				wc.checkWinScore(board);
 				if (vmc.getTurnOfPlayer() == 1 && wc.getWinScore() == 0)
-					ai.makeGreedyMoveDepth(board, vmc, 2);
-				System.out.println(xCoord + ", " + yCoord);
+//					ai.makeGreedyMoveDepth(board, vmc, 2);
+					ai.makeMinMaxMoveDepth(board, vmc, 1);
+				System.out.println("mouse xcord & ycord: " + xCoord + ", " + yCoord);
 			}
 			wc.checkWinScore(board);
 		    repaint(); 
@@ -164,7 +165,6 @@ public class ChineseChecker extends JPanel implements MouseListener{
      }
      
      public byte getY(int x, int y) {
-    	 
     	 return (byte) ((y- 60) / 34);
      }
      
