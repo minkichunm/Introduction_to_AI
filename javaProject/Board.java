@@ -82,7 +82,6 @@ public class Board {
 		for(byte i = 0; i < 17; i ++) {
             for(byte j = 0; j < 17; j ++) {
             	fakeBoard.setEntry(j, i, this.getEntry(j, i));
-            	
             }
 		}
 		return fakeBoard;

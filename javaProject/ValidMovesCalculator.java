@@ -3,8 +3,6 @@ package chineseChecker;
 import java.util.ArrayList;
 
 public class ValidMovesCalculator {
-	
-
 	private byte turnOfPlayer = 2;
 	private boolean selected = false;
 	private byte nOfPlayers = 2;

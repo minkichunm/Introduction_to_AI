@@ -44,12 +44,17 @@ public class AI {
 				board.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) vmc.getTurnOfPlayer());
 				board.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) 0);
 			}
-			
 		}
 		//System.out.println(bestHeuristic);
-		board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
-		board.setEntry(m.getNewX(), m.getNewY(), (byte) vmc.getTurnOfPlayer());
-		vmc.increaseTurnOfPlayer();
+		try{
+			board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
+			board.setEntry(m.getNewX(), m.getNewY(), (byte) vmc.getTurnOfPlayer());
+			vmc.increaseTurnOfPlayer();
+		}catch (NullPointerException e)
+		{
+			makeRandomMove(board,vmc);
+//			System.out.println("RandomMove in Greedy");
+		}
 	}
 	
 	private int RecGreedyMove(Board fakeBoard, int depth, ValidMovesCalculator vmc, int bestHeuristic, int inverseDepth) {
@@ -92,14 +97,31 @@ public class AI {
 	public void makeMinMaxMoveDepth(Board board, ValidMovesCalculator vmc, int depth) {
 		ArrayList <byte[]> positions = board.listOfEntries(vmc.getTurnOfPlayer());
 		ArrayList <byte[]> destinations = new ArrayList <byte[]>();
-		int bestHeuristic = heuristic1(positions);
+		int bestHeuristic = 1000;
+		int newHeuristic = 1000;
+		if(vmc.getTurnOfPlayer() == 1) // 1 is AI player
+		{
+			bestHeuristic = heuristic1(positions);
+		}
+		else if(vmc.getTurnOfPlayer() == 2)
+		{
+			bestHeuristic = heuristic2(positions);
+		}
 		Move m = null;
 		for (int i = 0; i < positions.size(); i++) {
 			destinations = validMovesAI(board, positions.get(i)[0], positions.get(i)[1]);
 			for (int j = 0; j < destinations.size(); j++) {
 				board.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
 				board.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
-				int newHeuristic = heuristic1(positions);
+				if(vmc.getTurnOfPlayer() == 1) // 1 is AI player
+				{
+					newHeuristic = heuristic1(positions);
+				}
+				else if(vmc.getTurnOfPlayer() == 2)
+				{
+					newHeuristic = heuristic2(positions);
+				}
+
 				int recHeuristic = RecMinMaxMove(board, depth, vmc, bestHeuristic, 0);
 				if (newHeuristic < bestHeuristic) {
 					bestHeuristic = newHeuristic;
@@ -123,10 +145,19 @@ public class AI {
 	private int RecMinMaxMove(Board fakeBoard, int depth, ValidMovesCalculator vmc, int bestHeuristic, int inverseDepth) {
 		if (depth == 0) {
 			ArrayList <byte[]> positions = fakeBoard.listOfEntries(vmc.getTurnOfPlayer());
-			return heuristic1(positions) + inverseDepth;
+			if(vmc.getTurnOfPlayer() == 1) // 1 is AI player
+			{
+				return heuristic1(positions) + inverseDepth;
+			}
+			else if(vmc.getTurnOfPlayer() == 2)
+			{
+				return heuristic2(positions) + inverseDepth;
+			}
+			return 1000;
 		} else {
 			Board fakeFakeBoard = fakeBoard.copy();
 			this.makeOpponentMove(fakeFakeBoard, vmc,(byte) 2);
+			int newHeuristic = 1000;
 			ArrayList <byte[]> positions = fakeFakeBoard.listOfEntries(vmc.getTurnOfPlayer());
 			ArrayList <byte[]> destinations = new ArrayList <byte[]>();
 			for (int i = 0; i < positions.size(); i++) {
@@ -134,7 +165,14 @@ public class AI {
 				for (int j = 0; j < destinations.size(); j++) {
 					fakeFakeBoard.setEntry(positions.get(i)[0], positions.get(i)[1], (byte) 0);
 					fakeFakeBoard.setEntry(destinations.get(j)[0], destinations.get(j)[1], (byte) vmc.getTurnOfPlayer());
-					int newHeuristic = heuristic1(positions) + inverseDepth;
+					if(vmc.getTurnOfPlayer() == 1) // 1 is AI player
+					{
+						newHeuristic = heuristic1(positions) + inverseDepth;
+					}
+					else if(vmc.getTurnOfPlayer() == 2)
+					{
+						newHeuristic = heuristic2(positions) + inverseDepth;
+					}
 					int recHeuristic = RecMinMaxMove(fakeFakeBoard, depth - 1, vmc, bestHeuristic, inverseDepth + 1);
 					if (newHeuristic < bestHeuristic) {
 						bestHeuristic = newHeuristic;
@@ -178,8 +216,15 @@ public class AI {
 			}
 		}
 		//System.out.println(bestHeuristic);
-		board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
-		board.setEntry(m.getNewX(), m.getNewY(), opponent);
+		try{
+			board.setEntry(m.getNewX(), m.getNewY(), opponent);
+			board.setEntry(m.getOldX(), m.getOldY(), (byte) 0);
+		}catch (NullPointerException e)
+		{
+			makeRandomMove(board,vmc);
+//			System.out.println("RandomMove in makeOpponentMove");
+			vmc.increaseTurnOfPlayer();
+		}
 	}
 
 	public ArrayList <byte[]> validMovesAI(Board board, byte x, byte y) {

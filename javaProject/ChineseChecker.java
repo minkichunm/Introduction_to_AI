@@ -13,7 +13,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class ChineseChecker extends JPanel implements MouseListener{
-	
 	JFrame frame = new JFrame();
 	JButton startGame = new JButton("START GAME");
 	JButton randomMove = new JButton("RANDOM AI");
@@ -93,8 +92,7 @@ public class ChineseChecker extends JPanel implements MouseListener{
     public static void main(String[] args) {
     	ChineseChecker cc = new ChineseChecker();
     }
-    
-    
+
     private void initGame() {
         frame.setTitle("Chinese Checker");
         frame.setSize(800, 800);
@@ -146,9 +144,11 @@ public class ChineseChecker extends JPanel implements MouseListener{
 				vmc.click(board, xCoord, yCoord);
 				wc.checkWinScore(board);
 				if (vmc.getTurnOfPlayer() == 1 && wc.getWinScore() == 0)
-//					ai.makeGreedyMoveDepth(board, vmc, 2);
+//					ai.makeMinMaxMoveDepth(board, vmc, 1);
+					ai.makeGreedyMoveDepth(board, vmc, 3);
+				if (vmc.getTurnOfPlayer() == 2 && wc.getWinScore() == 0)
 					ai.makeMinMaxMoveDepth(board, vmc, 1);
-				System.out.println("mouse xcord & ycord: " + xCoord + ", " + yCoord);
+				System.out.println("mouse xcord: " + xCoord + ", ycord: " + yCoord);
 			}
 			wc.checkWinScore(board);
 		    repaint(); 
@@ -167,6 +167,4 @@ public class ChineseChecker extends JPanel implements MouseListener{
      public byte getY(int x, int y) {
     	 return (byte) ((y- 60) / 34);
      }
-     
-     
 }
